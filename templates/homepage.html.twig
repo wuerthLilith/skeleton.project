@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Willkommen</title>
+    <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
+</head>
+<body>
+
+    <header class="page-header">
+        <h1>Willkommen auf unserer Seite!</h1>
+    </header>
+
+    {% include 'navbar.html.twig' %}
+
+    <main>
+        <section class="hero-container">
+            <div class="hero-content">
+                <p class="large-text">Hier können Sie verschiedene Dateien hochladen und verwalten.</p>
+                <button id="startButton" onclick="window.location.href='/catalog';" class="cta-button">Loslegen</button>
+            </div>
+        </section>
+    </main>
+
+    <script src="/js/main.js"></script>
+</body>
+</html>
+

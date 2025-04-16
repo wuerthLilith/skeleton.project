@@ -77,23 +77,41 @@ services:
     # See: https://docs.docker.com/compose/profiles/
     test-db:
         profiles: [ 'test' ]
-        extends: db
+        image: mariadb:10.11
+        command: ["mysqld", "--character-set-server=utf8mb4", "--collation-server=utf8mb4_general_ci", "--innodb-file-per-table=1"]
         volumes:
             - pimcore-test-database:/var/lib/mysql
+        environment:
+            - MYSQL_ROOT_PASSWORD=ROOT
+            - MYSQL_DATABASE=pimcore
+            - MYSQL_USER=pimcore
+            - MYSQL_PASSWORD=pimcore
+        healthcheck:
+            test: ["CMD-SHELL", "mysql -h test-db -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE -e 'SHOW TABLES;'"]
+            interval: 10s
+            retries: 6
+            start_period: 1m
+            timeout: 3s
+
 
     test-php:
         profiles: [ 'test' ]
-        extends: php
+        image: pimcore/pimcore:php8.3-debug-latest
+        user: '1001:1001'
         environment:
+            COMPOSER_HOME: /var/www/html
+            PHP_IDE_CONFIG: serverName=localhost
             APP_ENV: test
             PIMCORE_TEST_DB_DSN: ${PIMCORE_TEST_DB_DSN:-mysql://pimcore:pimcore@test-db/pimcore}
             PIMCORE_INSTALL_ADMIN_USERNAME: pimcore
             PIMCORE_INSTALL_ADMIN_PASSWORD: pimcore
             PIMCORE_INSTALL_MYSQL_HOST_SOCKET: test-db
         depends_on:
-            test-db:
-                condition: service_healthy
+          test-db:
+            condition: service_healthy
         volumes:
+            - .:/var/www/html
+            - ./.docker/messenger.yaml:/var/www/html/config/packages/messenger.yaml:ro
             - pimcore-test-var:/var/www/html/var
             - pimcore-test-public-var:/var/www/html/public/var
 

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Artikel hinzufügen</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+
+    <header class="page-header">
+        <h1>Artikel hinzufügen</h1>
+    </header>
+
+    {% include 'navbar.html.twig' %}
+
+    <main>
+        <form action="/catalog/add" method="post">
+            <label for="artikelnummer" class="label-shadow">Artikelnummer:</label>
+            <input type="text" id="artikelnummer" name="artikelnummer" required>
+
+            <label for="artikelbezeichnung" class="label-shadow">Artikelbezeichnung:</label>
+            <input type="text" id="artikelbezeichnung" name="artikelbezeichnung" required>
+
+            <label for="preis" class="label-shadow">Preis:</label>
+            <input type="number" id="preis" name="preis" step="0.01" required>
+
+            <label for="hersteller" class="label-shadow">Hersteller:</label>
+            <input type="text" id="hersteller" name="hersteller" required>
+
+            <input type="submit" value="Speichern">
+        </form>
+    </main>
+    
+</body>
+</html>
+
+

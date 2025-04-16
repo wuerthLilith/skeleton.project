@@ -2,32 +2,50 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ title }}</title>
+    <title>Produktkatalog</title>
+    <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
-    <header>
-        <h1>{{ title }}</h1>
-        {% if message %}
-            <div class="alert alert-success">
-                {{ message }}
-            </div>
-        {% endif %}
+
+    <header class="page-header">
+        <h1>Produktkatalog</h1>
     </header>
 
+    {% include 'navbar.html.twig' %}
+
     <main>
-        <h2>Produktliste</h2>
-        <ul>
-            {% for product in produkte %}
-                <li>
-                    <strong>{{ product.artikelbezeichnung }}</strong> ({{ product.artikelnummer }}) - {{ product.preis }} € - Hersteller: {{ product.hersteller }}
-                </li>
-            {% else %}
-                <li>Keine Produkte gefunden.</li>
-            {% endfor %}
-        </ul>
+        <table>
+            <thead>
+                <tr>
+                    <th>Artikelnummer</th>
+                    <th>Artikelbezeichnung</th>
+                    <th>Preis</th>
+                    <th>Hersteller</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                    <tr>
+                        <td>{{ product.artikelnummer }}</td>
+                        <td>{{ product.artikelbezeichnung }}</td>
+                        <td class="price">{{ product.preis is not null ? (product.preis|number_format(2, ',', '.')) : '' }}</td>
+                        <td class="hersteller">{{ product.hersteller }}</td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="4" class="alert">Keine Produkte vorhanden.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </main>
+
 </body>
 </html>
+
+
+
+
+
 
 
