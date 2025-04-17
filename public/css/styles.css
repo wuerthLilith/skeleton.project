@@ -73,35 +73,36 @@ nav a:hover {
 }
 
 table {
-    width: 80%;
-    margin: 20px auto;
+    width: 90%; /* Tabelle breiter machen */
+    margin: 30px auto; /* Mehr Abstand oben und unten */
     border-collapse: collapse;
     background-color: #fff8fb;
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 0 10px rgba(255, 105, 180, 0.2);
+    box-shadow: 0 0 15px rgba(255, 105, 180, 0.2);
 }
 
 th {
     background-color: #ffcce0;
     color: #843b5c;
-    padding: 15px;
-    font-size: 1.1em;
+    padding: 18px; /* Etwas mehr Padding für großzügigen Abstand */
+    font-size: 1.2em; /* Größere Schriftgröße */
 }
 
 td {
-    padding: 15px;
+    padding: 18px; /* Mehr Padding in den Zellen für besseren Abstand */
     border: 1px solid #fce4ec;
     background-color: #fff0f6;
     text-align: center;
+    font-size: 1.1em; /* Größere Schrift für bessere Lesbarkeit */
 }
 
 tr:nth-child(even) td {
-    background-color: #ffeaf3;
+    background-color: #ffeaf3; /* Wechselnde Farben für die Zeilen */
 }
 
 tr:hover td {
-    background-color: #ffe1ed;
+    background-color: #ffe1ed; /* Hover-Effekt für Zeilen */
 }
 
 button, input[type="submit"] {
@@ -172,4 +173,31 @@ nav ul {
     flex-wrap: wrap;
     gap: 12px;
 }
+
+.delete-label {
+    cursor: pointer;
+    position: relative;
+    display: inline-block;
+}
+
+.delete-label input[type="checkbox"] {
+    display: none;
+}
+
+.delete-icon {
+    font-size: 24px; 
+    font-weight: bold; 
+    color: transparent; 
+    transition: transform 0.1s ease, color 0.2s ease;
+}
+
+.delete-checkbox:checked + .delete-icon {
+    transform: scale(1.4);
+    color: rgb(255, 95, 162);
+}
+
+.delete-label:hover .delete-icon {
+    color: rgba(255, 128, 192, 0.664);
+}
+
 

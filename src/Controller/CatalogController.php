@@ -32,6 +32,7 @@ class CatalogController extends FrontendController
         if ($request->isMethod('POST')) {
             $artikelnummer = $request->request->get('artikelnummer');
             $artikelbezeichnung = $request->request->get('artikelbezeichnung');
+            $mengeneinheit = $request->request->get('mengeneinheit');
             $preis = (float) $request->request->get('preis');
             $hersteller = $request->request->get('hersteller');
 
@@ -41,6 +42,7 @@ class CatalogController extends FrontendController
 
             $product->setArtikelnummer($artikelnummer);
             $product->setArtikelbezeichnung($artikelbezeichnung);
+            $product->setMengeneinheit($mengeneinheit);
             $product->setPreis($preis);
             $product->setHersteller($hersteller);
 

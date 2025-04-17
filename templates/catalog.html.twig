@@ -14,31 +14,93 @@
     {% include 'navbar.html.twig' %}
 
     <main>
-        <table>
-            <thead>
-                <tr>
-                    <th>Artikelnummer</th>
-                    <th>Artikelbezeichnung</th>
-                    <th>Preis</th>
-                    <th>Hersteller</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for product in products %}
+        <form method="post" action="?route=catalog&bulk_delete=1" enctype="multipart/form-data">
+            <table>
+                <thead>
                     <tr>
-                        <td>{{ product.artikelnummer }}</td>
-                        <td>{{ product.artikelbezeichnung }}</td>
-                        <td class="price">{{ product.preis is not null ? (product.preis|number_format(2, ',', '.')) : '' }}</td>
-                        <td class="hersteller">{{ product.hersteller }}</td>
+                        <th>Artikelnummer</th>
+                        <th>Artikelbezeichnung</th>
+                        <th>Mengeneinheit</th>
+                        <th>Preis</th>
+                        <th>Hersteller</th>
+                        <th>PDF Hochladen</th>
+                        <th>
+                            <label class="delete-label">
+                                <input type="checkbox" id="select-all" class="delete-checkbox">
+                                <span class="delete-icon">❌</span>
+                            </label>
+                        </th> 
                     </tr>
-                {% else %}
-                    <tr>
-                        <td colspan="4" class="alert">Keine Produkte vorhanden.</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    {% for product in products %}
+                        <tr>
+                            <td>{{ product.artikelnummer }}</td>
+                            <td>{{ product.artikelbezeichnung }}</td>
+                            <td>{{ product.mengeneinheit }}</td>
+                            <td class="price">{{ product.preis is not null ? (product.preis|number_format(2, ',', '.') ~ ' €') : '' }}</td>
+                            <td class="hersteller">{{ product.hersteller }}</td>
+                            <td>
+                                <input type="file" name="pdf_{{ product.id }}" accept="application/pdf">
+                            </td>
+                            <td>
+                                <label class="delete-label">
+                                    <input type="checkbox" name="delete_ids[]" value="{{ product.id }}" class="delete-checkbox">
+                                    <span class="delete-icon">❌</span>
+                                </label>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="7" class="alert">Keine Produkte vorhanden.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <button type="submit" class="delete-btn" onclick="return confirm('Möchten Sie die ausgewählten Produkte wirklich löschen?')">Löschen</button>
+        </form>
     </main>
+
+</body>
+</html>
+
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const selectAllCheckbox = document.getElementById("select-all");
+        const itemCheckboxes = document.querySelectorAll(".delete-checkbox");
+        const deleteButton = document.querySelector("button[type='submit']");
+
+        function toggleDeleteButton() {
+            const anyChecked = Array.from(itemCheckboxes).some(checkbox => checkbox.checked && checkbox !== selectAllCheckbox);
+            deleteButton.style.display = anyChecked ? 'inline-block' : 'none';
+        }
+
+        selectAllCheckbox.addEventListener("change", function () {
+            itemCheckboxes.forEach(checkbox => {
+                if (checkbox !== selectAllCheckbox) {
+                    checkbox.checked = selectAllCheckbox.checked;
+                }
+            });
+            toggleDeleteButton();
+        });
+
+        itemCheckboxes.forEach(checkbox => {
+            if (checkbox !== selectAllCheckbox) {
+                checkbox.addEventListener("change", function () {
+                    if (!this.checked) {
+                        selectAllCheckbox.checked = false;
+                    } else if ([...itemCheckboxes].filter(cb => cb !== selectAllCheckbox).every(cb => cb.checked)) {
+                        selectAllCheckbox.checked = true;
+                    }
+                    toggleDeleteButton();
+                });
+            }
+        });
+
+        toggleDeleteButton();
+    });
+    </script>
 
 </body>
 </html>
