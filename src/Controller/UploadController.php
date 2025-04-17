@@ -18,44 +18,62 @@ class UploadController extends FrontendController
     {
         $message = null;
 
-        if ($request->isMethod('POST') && $request->files->get('pdf')) {
-            /** @var UploadedFile $file */
-            $file = $request->files->get('pdf');
+        if ($request->isMethod('POST') && $request->files->get('pdfs')) {
+            // Alle hochgeladenen PDFs abrufen
+            $files = $request->files->get('pdfs');
             $title = $request->request->get('title') ?? 'upload';
 
-            // Asset erstellen und speichern
-            $asset = new Asset();
-            $asset->setFilename($file->getClientOriginalName());
-            $asset->setData(file_get_contents($file->getPathname()));
+            // Prüfen, ob die PDFs ein Array sind (multiple Uploads)
+            if (is_array($files)) {
+                $assetIds = [];
 
-            // Prüfen, ob der Upload-Ordner existiert, andernfalls erstellen
-            $parentAsset = Asset::getByPath('/uploads');
-            if (!$parentAsset) {
-                $parentAsset = new Asset();
-                $parentAsset->setFilename('uploads');
-                $parentAsset->setParentId(1);  
-                $parentAsset->save();
-            }
+                foreach ($files as $file) {
+                    /** @var UploadedFile $file */
+                    // Asset erstellen und speichern
+                    $asset = new Asset();
+                    $asset->setFilename($file->getClientOriginalName());
+                    $asset->setData(file_get_contents($file->getPathname()));
 
-            $asset->setParent($parentAsset);
-            $asset->save();
+                    // Prüfen, ob der Upload-Ordner existiert, andernfalls erstellen
+                    $parentAsset = Asset::getByPath('/uploads');
+                    if (!$parentAsset) {
+                        $parentAsset = new Asset();
+                        $parentAsset->setFilename('uploads');
+                        $parentAsset->setParentId(1);
+                        $parentAsset->save();
+                    }
 
-            // PDF dem Produkt zuweisen (falls eine Produkt-ID übergeben wird)
-            $productId = $request->request->get('product_id');
-            if ($productId) {
-                $product = Product::getById($productId);
-                if ($product) {
-                    // Das PDF dem Produkt zuweisen
-                    $pdfs = $product->getPDF();
-                    $pdfs[] = $asset;  // PDF zu der bestehenden Liste hinzufügen
-                    $product->setPDF($pdfs); // Setzt das PDF-Feld
-                    $product->save();
-                    $message = 'PDF erfolgreich hochgeladen und mit Produkt verbunden!';
+                    $asset->setParent($parentAsset);
+                    $asset->save();
+
+                    // Asset ID für später speichern
+                    $assetIds[] = $asset->getId();
+                }
+
+                // PDFs dem Produkt zuweisen (falls eine Produkt-ID übergeben wird)
+                $productId = $request->request->get('product_id');
+                if ($productId) {
+                    $product = Product::getById($productId);
+                    if ($product) {
+                        // PDFs aus der Asset ID-Liste holen und dem Produkt zuweisen
+                        $pdfs = $product->getPDF();
+                        foreach ($assetIds as $assetId) {
+                            $asset = Asset::getById($assetId);
+                            if ($asset) {
+                                $pdfs[] = $asset;  // PDF zu der bestehenden Liste hinzufügen
+                            }
+                        }
+                        $product->setPDF($pdfs); // Setzt das PDF-Feld
+                        $product->save();
+                        $message = 'PDFs erfolgreich hochgeladen und mit Produkt verbunden!';
+                    } else {
+                        $message = 'Produkt nicht gefunden!';
+                    }
                 } else {
-                    $message = 'Produkt nicht gefunden!';
+                    $message = count($files) . ' PDFs hochgeladen.';
                 }
             } else {
-                $message = 'Hochgeladen: ' . $file->getClientOriginalName();
+                $message = 'Kein gültiger PDF-Upload.';
             }
         }
 
@@ -64,4 +82,5 @@ class UploadController extends FrontendController
         ]);
     }
 }
+
 

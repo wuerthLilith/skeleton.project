@@ -24,6 +24,7 @@
                         <th>Preis</th>
                         <th>Hersteller</th>
                         <th>PDF Hochladen</th>
+                        <th>Bereits Hochgeladene PDFs</th>
                         <th>
                             <label class="delete-label">
                                 <input type="checkbox" id="select-all" class="delete-checkbox">
@@ -41,7 +42,22 @@
                             <td class="price">{{ product.preis is not null ? (product.preis|number_format(2, ',', '.') ~ ' €') : '' }}</td>
                             <td class="hersteller">{{ product.hersteller }}</td>
                             <td>
-                                <input type="file" name="pdf_{{ product.id }}" accept="application/pdf">
+                                
+                                <input type="file" name="pdfs_{{ product.id }}[]" accept="application/pdf" multiple class="file-input">
+                            </td>
+                            <td>
+                               
+                                {% if product.getPDF() %}
+                                    <ul>
+                                        {% for pdf in product.getPDF() %}
+                                            <li>
+                                                <a href="{{ pdf.getFullPath() }}" target="_blank">{{ pdf.filename }}</a>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                {% else %}
+                                    <p>Keine PDFs vorhanden.</p>
+                                {% endif %}
                             </td>
                             <td>
                                 <label class="delete-label">
@@ -52,29 +68,44 @@
                         </tr>
                     {% else %}
                         <tr>
-                            <td colspan="7" class="alert">Keine Produkte vorhanden.</td>
+                            <td colspan="8" class="alert">Keine Produkte vorhanden.</td>
                         </tr>
                     {% endfor %}
                 </tbody>
             </table>
-            <button type="submit" class="delete-btn" onclick="return confirm('Möchten Sie die ausgewählten Produkte wirklich löschen?')">Löschen</button>
+
+            <button type="submit" class="upload-btn" style="display:none;">Hochladen</button>
+            
+
+            <button type="submit" class="delete-btn" style="display:none;" onclick="return confirm('Möchten Sie die ausgewählten Produkte wirklich löschen?')">Löschen</button>
         </form>
     </main>
-
-</body>
-</html>
-
 
     <script>
     document.addEventListener("DOMContentLoaded", function () {
         const selectAllCheckbox = document.getElementById("select-all");
         const itemCheckboxes = document.querySelectorAll(".delete-checkbox");
-        const deleteButton = document.querySelector("button[type='submit']");
+        const deleteButton = document.querySelector(".delete-btn");
+        const uploadButton = document.querySelector(".upload-btn");
+        const fileInputs = document.querySelectorAll(".file-input");
 
-        function toggleDeleteButton() {
+        function checkFileUpload() {
+            const anyFileSelected = Array.from(fileInputs).some(input => input.files.length > 0);
+            uploadButton.style.display = anyFileSelected ? 'inline-block' : 'none';
+        }
+
+        function checkDeleteSelection() {
             const anyChecked = Array.from(itemCheckboxes).some(checkbox => checkbox.checked && checkbox !== selectAllCheckbox);
             deleteButton.style.display = anyChecked ? 'inline-block' : 'none';
         }
+
+        fileInputs.forEach(input => {
+            input.addEventListener("change", checkFileUpload);
+        });
+
+        itemCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener("change", checkDeleteSelection);
+        });
 
         selectAllCheckbox.addEventListener("change", function () {
             itemCheckboxes.forEach(checkbox => {
@@ -82,28 +113,19 @@
                     checkbox.checked = selectAllCheckbox.checked;
                 }
             });
-            toggleDeleteButton();
+            checkDeleteSelection();
         });
 
-        itemCheckboxes.forEach(checkbox => {
-            if (checkbox !== selectAllCheckbox) {
-                checkbox.addEventListener("change", function () {
-                    if (!this.checked) {
-                        selectAllCheckbox.checked = false;
-                    } else if ([...itemCheckboxes].filter(cb => cb !== selectAllCheckbox).every(cb => cb.checked)) {
-                        selectAllCheckbox.checked = true;
-                    }
-                    toggleDeleteButton();
-                });
-            }
-        });
-
-        toggleDeleteButton();
+        
+        checkFileUpload();
+        checkDeleteSelection();
     });
     </script>
 
 </body>
 </html>
+
+
 
 
 
