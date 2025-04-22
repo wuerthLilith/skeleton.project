@@ -7,79 +7,86 @@
 </head>
 <body>
 
-    <header class="page-header">
-        <h1>Produktkatalog</h1>
-    </header>
+<header class="page-header">
+    <h1>Produktkatalog</h1>
+</header>
 
-    {% include 'navbar.html.twig' %}
+{% include 'navbar.html.twig' %}
 
-    <main>
-        <form method="post" action="?route=catalog&bulk_delete=1" enctype="multipart/form-data">
-            <table>
-                <thead>
+<main>
+    <form method="post" action="{{ path('upload_pdfs') }}" enctype="multipart/form-data">
+        <table>
+            <thead>
+                <tr>
+                    <th>Artikelnummer</th>
+                    <th>Artikelbezeichnung</th>
+                    <th>Mengeneinheit</th>
+                    <th>Preis</th>
+                    <th>Hersteller</th>
+                    <th>PDF Hochladen</th>
+                    <th>Bereits Hochgeladene PDFs</th>
+                    <th>
+                        <label class="delete-label">
+                            <input type="checkbox" id="select-all" class="delete-checkbox">
+                            <span class="delete-icon">❌</span>
+                        </label>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
                     <tr>
-                        <th>Artikelnummer</th>
-                        <th>Artikelbezeichnung</th>
-                        <th>Mengeneinheit</th>
-                        <th>Preis</th>
-                        <th>Hersteller</th>
-                        <th>PDF Hochladen</th>
-                        <th>Bereits Hochgeladene PDFs</th>
-                        <th>
+                        <td>{{ product.artikelnummer }}</td>
+                        <td>{{ product.artikelbezeichnung }}</td>
+                        <td>{{ product.mengeneinheit }}</td>
+                        <td class="price">
+                            {% if product.preis %}
+                                <span class="price-text">{{ product.preis|number_format(2, ',', '.') }}&nbsp;€</span>
+                            {% else %}
+                                Keine Preisangabe
+                            {% endif %}
+                        </td>
+                        <td class="hersteller">{{ product.hersteller }}</td>
+
+                        <td>
+                            <input type="file" name="pdfs_{{ product.id }}[]" accept="application/pdf" multiple class="file-input">
+                        </td>
+
+                        <td>
+                            {% if product.pdf is not null %}
+                                <ul>
+                                    {% for pdf in product.pdf %}
+                                        <li>
+                                            <a href="{{ pdf.getFullPath() }}" target="_blank">{{ pdf.filename }}</a>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p>Keine PDFs vorhanden.</p>
+                            {% endif %}
+                        </td>
+
+                        <td>
                             <label class="delete-label">
-                                <input type="checkbox" id="select-all" class="delete-checkbox">
+                                <input type="checkbox" name="delete_ids[]" value="{{ product.id }}" class="delete-checkbox">
                                 <span class="delete-icon">❌</span>
                             </label>
-                        </th> 
+                        </td>
                     </tr>
-                </thead>
-                <tbody>
-                    {% for product in products %}
-                        <tr>
-                            <td>{{ product.artikelnummer }}</td>
-                            <td>{{ product.artikelbezeichnung }}</td>
-                            <td>{{ product.mengeneinheit }}</td>
-                            <td class="price">{{ product.preis is not null ? (product.preis|number_format(2, ',', '.') ~ ' €') : '' }}</td>
-                            <td class="hersteller">{{ product.hersteller }}</td>
-                            <td>
-                                
-                                <input type="file" name="pdfs_{{ product.id }}[]" accept="application/pdf" multiple class="file-input">
-                            </td>
-                            <td>
-                               
-                                {% if product.getPDF() %}
-                                    <ul>
-                                        {% for pdf in product.getPDF() %}
-                                            <li>
-                                                <a href="{{ pdf.getFullPath() }}" target="_blank">{{ pdf.filename }}</a>
-                                            </li>
-                                        {% endfor %}
-                                    </ul>
-                                {% else %}
-                                    <p>Keine PDFs vorhanden.</p>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <label class="delete-label">
-                                    <input type="checkbox" name="delete_ids[]" value="{{ product.id }}" class="delete-checkbox">
-                                    <span class="delete-icon">❌</span>
-                                </label>
-                            </td>
-                        </tr>
-                    {% else %}
-                        <tr>
-                            <td colspan="8" class="alert">Keine Produkte vorhanden.</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                {% else %}
+                    <tr>
+                        <td colspan="8" class="alert">Keine Produkte vorhanden.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
 
+        <div class="button-row">
             <button type="submit" class="upload-btn" style="display:none;">Hochladen</button>
-            
-
             <button type="submit" class="delete-btn" style="display:none;" onclick="return confirm('Möchten Sie die ausgewählten Produkte wirklich löschen?')">Löschen</button>
-        </form>
-    </main>
+        </div>
+    </form>
+</main>
 
     <script>
     document.addEventListener("DOMContentLoaded", function () {

@@ -4,6 +4,7 @@ body {
     padding: 0;
     background-color: #fff0f5;
     color: #5c3a4b;
+    text-align: center; 
 }
 
 h1 {
@@ -96,6 +97,7 @@ td {
     text-align: center;
     font-size: 1.1em; /* Größere Schrift für bessere Lesbarkeit */
 }
+
 
 tr:nth-child(even) td {
     background-color: #ffeaf3; /* Wechselnde Farben für die Zeilen */
@@ -199,5 +201,6 @@ nav ul {
 .delete-label:hover .delete-icon {
     color: rgba(255, 128, 192, 0.664);
 }
+
 
 

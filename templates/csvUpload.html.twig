@@ -17,9 +17,9 @@
     <main class="upload-form-container">
         <h2>{{ pimcore_input("myHeadline") }}</h2>
 
-        <form action="{{ path('upload') }}" method="POST" enctype="multipart/form-data" class="upload-form">
+        <form action="{{ path('csv') }}" method="POST" enctype="multipart/form-data" class="upload-form">
             <div class="form-group">
-                <label for="pdf" class="form-label">Wähle PDF Datei hoch:</label>
+                <label for="pdf" class="form-label">Wähle CSV Datei hoch:</label>
                 <input type="file" id="pdf" name="pdf" class="form-input" required>
             </div>
 

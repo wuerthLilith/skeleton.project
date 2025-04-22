@@ -15,7 +15,7 @@
     {% include 'navbar.html.twig' %}
 
     <main>
-        <form action="/catalog/add" method="post">
+        <form action="{{ path('add_product') }}" method="post">
             <label for="artikelnummer" class="label-shadow">Artikelnummer:</label>
             <input type="text" id="artikelnummer" name="artikelnummer" required>
 

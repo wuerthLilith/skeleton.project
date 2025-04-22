@@ -1,83 +1,101 @@
 <?php
+
 namespace App\Controller;
 
-use Pimcore\Controller\FrontendController;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
-use Pimcore\Model\Asset;
 use Pimcore\Model\DataObject\Product;
+use Pimcore\Model\Asset;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpFoundation\Response;
 
-class UploadController extends FrontendController
+class UploadController extends AbstractController
 {
-    /**
-     * @Route("/upload", name="upload")
-     */
-    public function uploadAction(Request $request): Response
+    #[Route('/upload/pdfs', name: 'upload_pdfs', methods: ['POST'])]
+    public function uploadPDFs(Request $request): Response
     {
-        $message = null;
+        $data = $request->request->all();
+        $files = $request->files->all();
 
-        if ($request->isMethod('POST') && $request->files->get('pdfs')) {
-            // Alle hochgeladenen PDFs abrufen
-            $files = $request->files->get('pdfs');
-            $title = $request->request->get('title') ?? 'upload';
+        foreach ($files as $key => $pdfList) {
+            if (preg_match('/^pdfs_(\d+)$/', $key, $matches)) {
+                $productId = (int) $matches[1];
+                /** @var Product $product */
+                $product = Product::getById($productId);
 
-            // Prüfen, ob die PDFs ein Array sind (multiple Uploads)
-            if (is_array($files)) {
-                $assetIds = [];
-
-                foreach ($files as $file) {
-                    /** @var UploadedFile $file */
-                    // Asset erstellen und speichern
-                    $asset = new Asset();
-                    $asset->setFilename($file->getClientOriginalName());
-                    $asset->setData(file_get_contents($file->getPathname()));
-
-                    // Prüfen, ob der Upload-Ordner existiert, andernfalls erstellen
-                    $parentAsset = Asset::getByPath('/uploads');
-                    if (!$parentAsset) {
-                        $parentAsset = new Asset();
-                        $parentAsset->setFilename('uploads');
-                        $parentAsset->setParentId(1);
-                        $parentAsset->save();
-                    }
-
-                    $asset->setParent($parentAsset);
-                    $asset->save();
-
-                    // Asset ID für später speichern
-                    $assetIds[] = $asset->getId();
+                if (!$product) {
+                    continue;
                 }
 
-                // PDFs dem Produkt zuweisen (falls eine Produkt-ID übergeben wird)
-                $productId = $request->request->get('product_id');
-                if ($productId) {
-                    $product = Product::getById($productId);
-                    if ($product) {
-                        // PDFs aus der Asset ID-Liste holen und dem Produkt zuweisen
-                        $pdfs = $product->getPDF();
-                        foreach ($assetIds as $assetId) {
-                            $asset = Asset::getById($assetId);
-                            if ($asset) {
-                                $pdfs[] = $asset;  // PDF zu der bestehenden Liste hinzufügen
-                            }
-                        }
-                        $product->setPDF($pdfs); // Setzt das PDF-Feld
-                        $product->save();
-                        $message = 'PDFs erfolgreich hochgeladen und mit Produkt verbunden!';
-                    } else {
-                        $message = 'Produkt nicht gefunden!';
+                $existingPdfs = $product->getPDF() ?? [];
+
+                /** @var UploadedFile $pdf */
+                foreach ($pdfList as $pdf) {
+                    if ($pdf instanceof UploadedFile && $pdf->isValid()) {
+                        $asset = new Asset\Document();
+                        $asset->setFilename(uniqid() . '-' . $pdf->getClientOriginalName());
+                        $asset->setData(file_get_contents($pdf->getRealPath()));
+                        $asset->setMimeType($pdf->getClientMimeType());
+                        $asset->setParentId(1); 
+                        $asset->save();
+
+                        $existingPdfs[] = $asset;
                     }
-                } else {
-                    $message = count($files) . ' PDFs hochgeladen.';
                 }
-            } else {
-                $message = 'Kein gültiger PDF-Upload.';
+
+                $product->setPDF($existingPdfs);
+                $product->save();
             }
         }
 
-        return $this->render('upload.html.twig', [
+        if (isset($data['delete_ids'])) {
+            foreach ($data['delete_ids'] as $id) {
+                $product = Product::getById((int) $id);
+                if ($product) {
+                    $product->delete();
+                }
+            }
+        }
+
+        $this->addFlash('success', 'Daten wurden gespeichert.');
+        return $this->redirectToRoute('catalog'); 
+    }
+
+
+ /**
+     * @Route("/csv", name="csv")
+     */
+    public function csvAction(Request $request): Response
+    {
+        $message = null;
+
+        if ($request->isMethod('POST') && $request->files->get('csv')) {
+            /** @var UploadedFile $file */
+            $file = $request->files->get('csv');
+
+            if ($file && $file->getClientOriginalExtension() === 'csv') {
+                $csvData = array_map('str_getcsv', file($file->getPathname()));
+                
+
+                foreach ($csvData as $row) {
+
+                    $product = new Product();
+                    $product->setArtikelnummer($row[0]);
+                    $product->setArtikelbezeichnung($row[1]);
+                    $product->setMengeneinheit($row[2]);
+                    $product->setPreis($row[3]);
+                    $product->setHersteller($row[4]);
+                    $product->save();
+                }
+
+                $message = 'CSV-Datei erfolgreich verarbeitet und Produkte gespeichert.';
+            } else {
+                $message = 'Bitte lade eine gültige CSV Datei hoch.';
+            }
+        }
+
+        return $this->render('csvUpload.html.twig', [
             'success' => $message,
         ]);
     }
